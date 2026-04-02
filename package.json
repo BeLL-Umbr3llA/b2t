@@ -1,13 +1,32 @@
 {
   "name": "tiktok-bot-vercel",
   "version": "1.0.0",
+  "description": "TikTok No Watermark Downloader Bot with Supabase Integration",
   "main": "api/index.js",
   "scripts": {
-    "start": "node api/index.js"
+    "start": "node api/index.js",
+    "dev": "nodemon api/index.js"
+  },
+  "engines": {
+    "node": "18.x"
   },
   "dependencies": {
-    "axios": "^1.6.0",
-    "grammy": "^1.19.0"
-  }
+    "@supabase/supabase-js": "^2.40.0",
+    "axios": "^1.6.2",
+    "grammy": "^1.19.2",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "tiktok",
+    "downloader",
+    "supabase",
+    "vercel"
+  ],
+  "author": "YourName",
+  "license": "ISC"
 }
-
