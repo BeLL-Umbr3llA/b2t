@@ -77,13 +77,12 @@ bot.on("message:text", async (ctx) => {
         }
     } 
 
-   // ၂။ Admin အတွက် Dashboard (Stats - Top 10)
+    // ၂။ Admin အတွက် Dashboard (Stats - Top 10)
     else if (url === "/stats" && userId === ADMIN_ID) {
         try {
             const { count: userCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
             const { count: linkCount } = await supabase.from('links_history').select('*', { count: 'exact', head: true });
             
-            // limit ကို 10 လို့ ပြောင်းထားပါတယ်
             const { data: topUsers } = await supabase
                 .from('users')
                 .select('first_name, usage_count')
@@ -99,7 +98,6 @@ bot.on("message:text", async (ctx) => {
             statMsg += `|----|------------|-----|\n`;
             
             topUsers?.forEach((u, i) => {
-                // နံပါတ်စဉ်ကို ၂ လုံးစာ နေရာယူခိုင်းမယ် (ဥပမာ ၁၀ ဆိုရင် ညီသွားအောင်)
                 let no = (i + 1).toString().padEnd(2, ' ');
                 let name = u.first_name.substring(0, 10).padEnd(10, ' ');
                 let count = u.usage_count.toString().padEnd(3, ' ');
@@ -113,13 +111,64 @@ bot.on("message:text", async (ctx) => {
             await ctx.reply("Stats ထုတ်ရာတွင် အမှားအယွင်းရှိနေပါသည်။");
         }
     }
-    // ၃။ /start command အတွက်
+
+    // ၃။ Admin က Username (@name) ပို့ပြီး User ရဲ့ Link ရာဇဝင်ကို ရှာဖွေခြင်း
+    else if (url.startsWith("@") && userId === ADMIN_ID) {
+        const targetUsername = url.replace("@", "");
+
+        try {
+            // Username နဲ့ User ကို အရင်ရှာမယ်
+            const { data: targetUser, error: userError } = await supabase
+                .from('users')
+                .select('id, first_name, usage_count')
+                .eq('username', targetUsername)
+                .single();
+
+            if (userError || !targetUser) {
+                return await ctx.reply(`❌ @${targetUsername} ဆိုတဲ့ User ကို ရှာမတွေ့ပါဘူး။`);
+            }
+
+            // အဲဒီ User ရဲ့ နောက်ဆုံး Link ၅ ခုကို ဆွဲထုတ်မယ်
+            const { data: userLinks } = await supabase
+                .from('links_history')
+                .select('link_url, created_at')
+                .eq('user_id', targetUser.id)
+                .order('created_at', { ascending: false })
+                .limit(5);
+
+            let reportMsg = `📋 *USER REPORT (Admin Only)*\n\n`;
+            reportMsg += `👤 *Name:* ${targetUser.first_name}\n`;
+            reportMsg += `🔢 *Total Usage:* ${targetUser.usage_count} ကြိမ်\n\n`;
+            reportMsg += `🔗 *Last 5 Downloads:*\n`;
+
+            if (!userLinks || userLinks.length === 0) {
+                reportMsg += "_ပို့ထားသော Link မရှိသေးပါ။_";
+            } else {
+                userLinks.forEach((l, i) => {
+                    // Link ကို တိုက်ရိုက်နှိပ်လို့ရအောင် Markdown format သုံးထားပါတယ်
+                    reportMsg += `${i + 1}. [Link URL](${l.link_url})\n`;
+                });
+            }
+
+            await ctx.reply(reportMsg, { parse_mode: "Markdown", disable_web_page_preview: true });
+
+        } catch (err) {
+            console.error(err);
+            await ctx.reply("ရှာဖွေရာတွင် Database Error ဖြစ်ပေါ်ခဲ့သည်။");
+        }
+    }
+
+    // ၄။ /start command အတွက်
     else if (url === "/start") {
         await ctx.reply("TikTok Link ပို့ပေးပါခင်ဗျာ... \nကိုကိုဘဲ မှ Logo အပျောက် \nvideo ပြန်ပို့ပေးပါမယ် ခင်ဗျာ...\n @bellumbrr");
     } 
-    // ၄။ အခြားစာသားများအတွက်
+
+    // ၅။ အခြားစာသားများအတွက်
     else {
-        await ctx.reply("ကျေးဇူးပြု၍ TikTok Link တစ်ခု ပို့ပေးပါခင်ဗျာ။");
+        // Admin က @username ရိုက်တာမဟုတ်ဘဲ တခြားစာတွေပို့ရင် (သို့မဟုတ်) User တွေက စာပို့ရင်
+        if (!url.startsWith("@")) {
+            await ctx.reply("ကျေးဇူးပြု၍ TikTok Link တစ်ခု ပို့ပေးပါခင်ဗျာ။");
+        }
     }
 });
 
