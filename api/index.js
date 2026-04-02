@@ -6,7 +6,7 @@ const { createClient } = require("@supabase/supabase-js");
 const token = process.env.BOT_TOKEN;
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
-const ADMIN_ID = Number(process.env.ADMIN_ID); // String ကနေ Number ပြောင်းပေးဖို့ လိုပါတယ်
+const ADMIN_ID = Number(process.env.ADMIN_ID); 
 
 const bot = new Bot(token);
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -42,7 +42,7 @@ bot.on("message:text", async (ctx) => {
         await ctx.reply("ခဏစောင့်ပေးပါခင်ဗျာ...");
 
         try {
-            // --- (B) Link ကို History ထဲ သိမ်းခြင်း ---
+            // Link ကို History ထဲ သိမ်းခြင်း
             await supabase.from('links_history').insert({
                 user_id: userId,
                 link_url: url
@@ -76,35 +76,48 @@ bot.on("message:text", async (ctx) => {
             await ctx.reply("Server Error! ခဏနေမှ ပြန်ကြိုးစားကြည့်ပါ။");
         }
     } 
-    // ၂။ Admin အတွက် Dashboard (Stats)
+
+   // ၂။ Admin အတွက် Dashboard (Stats - Top 10)
     else if (url === "/stats" && userId === ADMIN_ID) {
         try {
             const { count: userCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
             const { count: linkCount } = await supabase.from('links_history').select('*', { count: 'exact', head: true });
             
+            // limit ကို 10 လို့ ပြောင်းထားပါတယ်
             const { data: topUsers } = await supabase
                 .from('users')
                 .select('first_name, usage_count')
                 .order('usage_count', { ascending: false })
-                .limit(5);
+                .limit(10); 
 
-            let statMsg = `📊 **Bot Dashboard**\n\n`;
-            statMsg += `👥 စုစုပေါင်းအသုံးပြုသူ: ${userCount || 0} ယောက်\n`;
-            statMsg += `🔗 စုစုပေါင်း Download: ${linkCount || 0} ကြိမ်\n\n`;
-            statMsg += `🏆 **Top 5 Users:**\n`;
+            let statMsg = `📊 *BOT DASHBOARD*\n\n`;
+            statMsg += `👥 Users: ${userCount || 0} | 🔗 Downloads: ${linkCount || 0}\n\n`;
+            
+            statMsg += `🏆 *TOP 10 USERS LIST*\n`;
+            statMsg += `\`\`\`\n`;
+            statMsg += `| No | Name       | Qty |\n`;
+            statMsg += `|----|------------|-----|\n`;
             
             topUsers?.forEach((u, i) => {
-                statMsg += `${i+1}. ${u.first_name} (${u.usage_count} ကြိမ်)\n`;
+                // နံပါတ်စဉ်ကို ၂ လုံးစာ နေရာယူခိုင်းမယ် (ဥပမာ ၁၀ ဆိုရင် ညီသွားအောင်)
+                let no = (i + 1).toString().padEnd(2, ' ');
+                let name = u.first_name.substring(0, 10).padEnd(10, ' ');
+                let count = u.usage_count.toString().padEnd(3, ' ');
+                statMsg += `| ${no} | ${name} | ${count} |\n`;
             });
+            statMsg += `\`\`\``;
 
             await ctx.reply(statMsg, { parse_mode: "Markdown" });
         } catch (err) {
+            console.error(err);
             await ctx.reply("Stats ထုတ်ရာတွင် အမှားအယွင်းရှိနေပါသည်။");
         }
     }
+    // ၃။ /start command အတွက်
     else if (url === "/start") {
         await ctx.reply("TikTok Link ပို့ပေးပါခင်ဗျာ... \nကိုကိုဘဲ မှ Logo အပျောက် \nvideo ပြန်ပို့ပေးပါမယ် ခင်ဗျာ...\n @bellumbrr");
     } 
+    // ၄။ အခြားစာသားများအတွက်
     else {
         await ctx.reply("ကျေးဇူးပြု၍ TikTok Link တစ်ခု ပို့ပေးပါခင်ဗျာ။");
     }
