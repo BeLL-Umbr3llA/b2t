@@ -1,51 +1,42 @@
-const { Bot } = require("grammy");
+const { Bot, webhookCallback } = require("grammy");
 const axios = require("axios");
 
-// Bot Token ကို Render ရဲ့ Environment Variable ထဲမှာ ထည့်ပါမယ်
+// Token ကို Environment Variable ကနေ ယူမယ်
 const token = process.env.BOT_TOKEN;
-if (!token) throw new Error("BOT_TOKEN is not defined");
-
 const bot = new Bot(token);
 
-bot.command("start", (ctx) => {
-    ctx.reply("ကြိုဆိုပါတယ်! TikTok Link ပေးလိုက်ရင် Watermark မပါတဲ့ Video နဲ့ Photo ကို ထုတ်ပေးပါမယ်။");
-});
-
+// TikTok Link လက်ခံတဲ့အပိုင်း
 bot.on("message:text", async (ctx) => {
     const url = ctx.message.text;
 
     if (url.includes("tiktok.com")) {
-        await ctx.reply("ခဏစောင့်ပါ... အချက်အလက်ယူနေပါတယ်...");
+        await ctx.reply("ခဏစောင့်ပါ... ဗီဒီယို ရှာနေပါတယ်...");
 
         try {
-            // TikWM API ကို အသုံးပြုခြင်း
             const response = await axios.get(`https://www.tikwm.com/api/?url=${url}`);
             const res = response.data;
 
             if (res.code === 0) {
                 const data = res.data;
-
-                // ၁။ Video ပို့ခြင်း
+                // Video ပို့မယ်
                 await ctx.replyWithVideo(data.play, {
-                    caption: `🎬 Title: ${data.title}\n👤 Author: ${data.author.nickname}`,
+                    caption: `🎬 ${data.title}\n\n@YourBotName`,
                 });
-
-                // ၂။ Cover Image (Photo) ပို့ခြင်း
+                // Image (Cover) ပို့မယ်
                 await ctx.replyWithPhoto(data.cover, {
                     caption: "🖼️ Video Cover Image",
                 });
-
             } else {
-                await ctx.reply("ဗီဒီယို ရှာမတွေ့ပါ။ Link မှန်မမှန် ပြန်စစ်ပေးပါ။");
+                await ctx.reply("ဗီဒီယို ရှာမတွေ့ပါ။ Link ပြန်စစ်ပါ။");
             }
         } catch (error) {
-            console.error(error);
-            await ctx.reply("Server အခက်အခဲကြောင့် ခဏနေမှ ပြန်ကြိုးစားကြည့်ပါ။");
+            await ctx.reply("Server Error! နောက်မှ ပြန်ကြိုးစားပါ။");
         }
+    } else if (url === "/start") {
+        await ctx.reply("TikTok Link ပို့ပေးပါ၊ Watermark မပါဘဲ ထုတ်ပေးပါမယ်။");
     }
 });
 
-// Bot ကို Start လုပ်ခြင်း
-bot.start();
-console.log("Bot is running...");
+// Vercel ရဲ့ Serverless Function အတွက် Export လုပ်ခြင်း
+module.exports = webhookCallback(bot, "http");
 
