@@ -23,7 +23,7 @@ bot.on("message:text", async (ctx) => {
                     const videoUrl = data.hdplay || data.play;
                     
                     await ctx.replyWithVideo(videoUrl, {
-                        caption: "ကျေးဇူးတင်ပါတယ်ခင်ဗျာ။",
+                        caption: "ရေအမှတ်မပါတာရပါပြီဗျာ ---B3ll",
                     });
                 } 
                 // ၂။ Photo Slideshow ဖြစ်လျှင်
@@ -33,7 +33,7 @@ bot.on("message:text", async (ctx) => {
                         media: imgUrl,
                     }));
                     await ctx.replyWithMediaGroup(mediaGroup.slice(0, 10));
-                    await ctx.reply("မိတ်ဆွေလိုအပ်တဲ့ ရေအမှတ်မပါတာရပါပြီဗျာ ----B3ll");
+                    await ctx.reply("ရေအမှတ် မပါတာရပါပြီဗျာ ---B3ll");
                 }
             } else {
                 await ctx.reply("ဗီဒီယို သို့မဟုတ် ဓာတ်ပုံ ရှာမတွေ့ပါ။");
@@ -43,7 +43,7 @@ bot.on("message:text", async (ctx) => {
             await ctx.reply("Server Error! ခဏနေမှ ပြန်ကြိုးစားကြည့်ပါ။");
         }
     } else if (url === "/start") {
-        await ctx.reply("TikTok Link ပို့ပေးပါခင်ဗျာ... \nကိုကိုဘဲ မှ Logo အပျောက် video ပြန်ပို့ပေးပါမယ် ခင်ဗျာ...");
+        await ctx.reply("TikTok Link ပို့ပေးပါခင်ဗျာ... \nကိုကိုဘဲ မှ Logo အပျောက် \nvideo ပြန်ပို့ပေးပါမယ် ခင်ဗျာ...\n @bellumbrr");
     }
 });
 
