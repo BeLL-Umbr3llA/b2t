@@ -5,10 +5,10 @@ const token = process.env.BOT_TOKEN;
 const bot = new Bot(token);
 
 bot.on("message:text", async (ctx) => {
-    const url = ctx.message.text;
+    const url = ctx.message.text.trim();
 
+    // ၁။ TikTok Link ဟုတ်မဟုတ် စစ်ဆေးခြင်း
     if (url.includes("tiktok.com")) {
-        // Link ရတာနဲ့ အရင်ဆုံး စာပြန်မယ်
         await ctx.reply("ခဏစောင့်ပေးပါခင်ဗျာ...");
 
         try {
@@ -18,32 +18,39 @@ bot.on("message:text", async (ctx) => {
             if (res.code === 0) {
                 const data = res.data;
 
-                // ၁။ Video ဖြစ်လျှင် (HD Quality ကို အရင်စစ်မယ်)
-                if (data.hdplay || data.play) {
-                    const videoUrl = data.hdplay || data.play;
-                    
-                    await ctx.replyWithVideo(videoUrl, {
-                        caption: "ရေအမှတ်မပါတာရပါပြီဗျာ ---B3ll",
-                    });
-                } 
-                // ၂။ Photo Slideshow ဖြစ်လျှင်
-                else if (data.images && data.images.length > 0) {
+                // Photo Slideshow ဖြစ်မဖြစ် အရင်စစ်မယ် (ဒါမှ ပုံတွေအရင်ထွက်မှာပါ)
+                if (data.images && data.images.length > 0) {
                     const mediaGroup = data.images.map((imgUrl) => ({
                         type: "photo",
                         media: imgUrl,
                     }));
+                    
+                    // Telegram က တစ်ခါပို့ရင် ပုံ ၁၀ ပုံပဲ လက်ခံလို့ ပထမ ၁၀ ပုံကို ပို့ပေးမယ်
                     await ctx.replyWithMediaGroup(mediaGroup.slice(0, 10));
                     await ctx.reply("ရေအမှတ် မပါတာရပါပြီဗျာ ---B3ll");
+                } 
+                // Photo မဟုတ်မှ Video အနေနဲ့ စစ်မယ်
+                else if (data.hdplay || data.play) {
+                    const videoUrl = data.hdplay || data.play;
+                    await ctx.replyWithVideo(videoUrl, {
+                        caption: "ရေအမှတ်မပါတာရပါပြီဗျာ ---B3ll",
+                    });
                 }
             } else {
-                await ctx.reply("ဗီဒီယို သို့မဟုတ် ဓာတ်ပုံ ရှာမတွေ့ပါ။");
+                await ctx.reply("ဗီဒီယို သို့မဟုတ် ဓာတ်ပုံ ရှာမတွေ့ပါ။ Link ကို ပြန်စစ်ပေးပါ။");
             }
         } catch (error) {
             console.error(error);
             await ctx.reply("Server Error! ခဏနေမှ ပြန်ကြိုးစားကြည့်ပါ။");
         }
-    } else if (url === "/start") {
+    } 
+    // ၂။ /start command အတွက်
+    else if (url === "/start") {
         await ctx.reply("TikTok Link ပို့ပေးပါခင်ဗျာ... \nကိုကိုဘဲ မှ Logo အပျောက် \nvideo ပြန်ပို့ပေးပါမယ် ခင်ဗျာ...\n @bellumbrr");
+    } 
+    // ၃။ TikTok Link လည်းမဟုတ်၊ Start လည်းမဟုတ်တဲ့ တခြားစာသားတွေအတွက်
+    else {
+        await ctx.reply("ကျေးဇူးပြု၍ TikTok Link တစ်ခု ပို့ပေးပါခင်ဗျာ။");
     }
 });
 
